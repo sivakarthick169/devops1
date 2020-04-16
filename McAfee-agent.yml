@@ -1,0 +1,64 @@
+---
+- hosts: localhost
+  become: yes
+  vars:
+      proxy_env:
+        http_proxy: http://proxy.austin.hp.com:8080
+        https_proxy: http://proxy.austin.hp.com:8080
+  tasks:
+  - name: ansible create directory example
+    file:
+      path: /etc/sysconfig/mcafee
+      state: directory
+  - name: changing directory
+    shell:
+      chdir: /etc/sysconfig/mcafee
+  - name: task name
+    environment: "{{proxy_env}}"
+  - name: Downloading the agent package
+    get_url:
+      url: http://aws-linux-repo.site.corp.hpicloud.net/utils/mcafee/Linux_WS_5.5.1_agentPackages.zip
+      dest: /etc/sysconfig/mcafee/
+  - name: Renaming the package
+    stat: path=/etc/sysconfig/mcafee/Linux_WS_5.5.1_agentPackages.zip
+    register: agentPackages_Centos.zip
+  - name: install the latest version of Unzip & Wget
+    package:
+      name:
+        - unzip
+        - wget
+      state: latest
+  - name: Unarchive a agent file that  already on the remote machine
+    unarchive:
+      src: /etc/sysconfig/mcafee/agentPackages_Centos.zip
+      dest: /etc/sysconfig/mcafee/
+      remote_src: yes
+  - name: Change file permissions
+    file:
+      path: /etc/sysconfig/mcafee/install.sh
+      mode: '0655'
+  - name: This command will run a file
+    shell:
+      cmd: ./install.sh -i
+  - name: Downloading the Release standalone
+    get_url:
+      url: http://aws-linux-repo.site.corp.hpicloud.net/utils/mcafee/ISecTP-10.2.3-1459-Release-standalone.tar.gz
+      dest: /etc/sysconfig/mcafee/
+  - name: Unarchive a agent file that  already on the remote machine
+    unarchive:
+      src: /etc/sysconfig/mcafee/ISecTP-10.2.3-1459-Release-standalone.tar.gz
+      dest: /etc/sysconfig/mcafee/
+      remote_src: yes
+  - name: Change file permissions
+    file:
+      path: /etc/sysconfig/mcafee/install-isectp.sh
+      mode: '0655'
+  - name: This command will run a file
+    shell:
+      cmd: sh install-isectp.sh silent
+  - name: changing directory
+    shell:
+      chdir: /opt/McAfee/cma/bin
+  - name: run file
+    shell:
+      cmd: ./cmdagent -p
