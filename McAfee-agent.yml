@@ -1,10 +1,6 @@
 ---
-- hosts: localhost
-  become: yes
-  vars:
-      proxy_env:
-        http_proxy: http://proxy.austin.hp.com:8080
-        https_proxy: http://proxy.austin.hp.com:8080
+- hosts: ansibleclient01.local
+  become_user: root
   tasks:
   - name: ansible create directory example
     file:
@@ -13,8 +9,12 @@
   - name: changing directory
     shell:
       chdir: /etc/sysconfig/mcafee
-  - name: task name
-    environment: "{{proxy_env}}"
+  - name: exporting proxy http
+    shell:
+      cmd: export http_proxy=proxy.austin.hp.com:8080
+  - name: exporting proxy https
+    shell:
+      cmd: export https_proxy=proxy.austin.hp.com:8080
   - name: Downloading the agent package
     get_url:
       url: http://aws-linux-repo.site.corp.hpicloud.net/utils/mcafee/Linux_WS_5.5.1_agentPackages.zip
